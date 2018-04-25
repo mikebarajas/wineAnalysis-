@@ -17,19 +17,31 @@ app = Flask(__name__)
 #################################################
 from flask_sqlalchemy import SQLAlchemy
 app.config['DATABASE_URI'] = "sqlite:///db/wine_reviews.sqlite"
-
 db = SQLAlchemy(app)
 
-class Wine(db.Model):
-    __tablename__ = 'wine'
+dbfile = os.path.join('./raw_data/wine_reviews.sqlite')
+engine = create_engine(f"sqlite:///{dbfile}")
+# reflect an existing database into a new model
+Base = automap_base()
+# reflect the tables
+Base.prepare(engine, reflect=True)
+# Save references to each table
+wine_reviews = Base.classes.reviews 
+# Create our session (link) from Python to the Database
+session = Session(engine)
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64))
-    lat = db.Column(db.Float)
-    lon = db.Column(db.Float)
 
-    def __repr__(self):
-        return '<Pet %r>' % (self.name)
+# class Wine(db.Model):
+#     __tablename__ = 'wine'
+
+#     id = db.Column(db.Integer, primary_key=True)
+#     name = db.Column(db.String(64))
+#     lat = db.Column(db.Float)
+#     lon = db.Column(db.Float)
+
+#     def __repr__(self):
+#         return '<Pet %r>' % (self.name)
+
 
 @app.before_first_request
 def setup():
