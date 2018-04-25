@@ -15,7 +15,25 @@ app = Flask(__name__)
 #################################################
 # Database Setup
 #################################################
+from flask_sqlalchemy import SQLAlchemy
+app.config['SQLALCHEMY_DATABASE_URI'] = "./raw_data/wine_reviews.sqlite"
 
+db = SQLAlchemy(app)
+
+class Wine(db.Model):
+    __tablename__ = 'wine'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64))
+    lat = db.Column(db.Float)
+    lon = db.Column(db.Float)
+
+    def __repr__(self):
+        return '<Pet %r>' % (self.name)
+
+@app.before_first_request
+def setup():
+    db.create_all()
 
 @app.route("/")
 def index():
@@ -64,11 +82,6 @@ def cluster():
         json_data.append(location)
 
     return jsonify(json_data)
-
-# Navigation between pages
-# @app.route('/')
-# def index():
-#     return render_template("index.html")
 
 @app.route("/index.html")
 def home():
@@ -129,16 +142,16 @@ def tabledata():
 
 
 if __name__ == "__main__":
-    dbfile = os.path.join('./raw_data/wine_reviews.sqlite')
-    engine = create_engine(f"sqlite:///{dbfile}")
-    # reflect an existing database into a new model
-    Base = automap_base()
-    # reflect the tables
-    Base.prepare(engine, reflect=True)
-    # Save references to each table
-    wine_reviews = Base.classes.reviews 
-    # Create our session (link) from Python to the Database
-    session = Session(engine)
+    # dbfile = os.path.join('./raw_data/wine_reviews.sqlite')
+    # engine = create_engine(f"sqlite:///{dbfile}")
+    # # reflect an existing database into a new model
+    # Base = automap_base()
+    # # reflect the tables
+    # Base.prepare(engine, reflect=True)
+    # # Save references to each table
+    # wine_reviews = Base.classes.reviews 
+    # # Create our session (link) from Python to the Database
+    # session = Session(engine)
     app.run(debug=True)
     
 
