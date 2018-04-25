@@ -16,7 +16,7 @@ app = Flask(__name__)
 # Database Setup
 #################################################
 from flask_sqlalchemy import SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = "./raw_data/wine_reviews.sqlite"
+app.config['SQLALCHEMY_DATABASE_URI'] = "/raw_data/wine_reviews.sqlite"
 
 db = SQLAlchemy(app)
 
