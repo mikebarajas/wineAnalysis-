@@ -9,48 +9,34 @@ from sqlalchemy.orm import Session
 from sqlalchemy import create_engine,func
 
 from flask import Flask, jsonify, render_template
+from flask_sqlalchemy import SQLAlchemy
 
+#################################################
+# Flask Setup
+#################################################
 app = Flask(__name__)
 
-#################################################
-# Database Setup
-#################################################
-from flask_sqlalchemy import SQLAlchemy
-app.config['DATABASE_URI'] = "sqlite:///db/wine_reviews.sqlite"
-db = SQLAlchemy(app)
-
-dbfile = os.path.join('./raw_data/wine_reviews.sqlite')
-engine = create_engine(f"sqlite:///{dbfile}")
-# reflect an existing database into a new model
-Base = automap_base()
-# reflect the tables
-Base.prepare(engine, reflect=True)
-# Save references to each table
-wine_reviews = Base.classes.reviews 
-# Create our session (link) from Python to the Database
-session = Session(engine)
-
-
-# class Wine(db.Model):
-#     __tablename__ = 'wine'
-
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(64))
-#     lat = db.Column(db.Float)
-#     lon = db.Column(db.Float)
-
-#     def __repr__(self):
-#         return '<Pet %r>' % (self.name)
-
-
-@app.before_first_request
-def setup():
-    db.create_all()
 
 @app.route("/")
 def index():
     return render_template('/index.html')
 
+@app.route("/index.html")
+def home():
+    return render_template('index.html')
+
+@app.route("/map.html")
+def map():
+    return render_template('map.html')
+
+@app.route("/bar.html")
+def bar():
+    return render_template('bar.html')
+
+@app.route("/data.html")
+def data():
+    """Return the data for the table"""
+    return render_template('data.html')
 
 @app.route("/regions")
 def names():
@@ -78,10 +64,10 @@ def cluster():
     stmt = session.query(wine_reviews).statement
     df = pd.read_sql_query(stmt, session.bind)
 
-# group the df by region_1,latitude and logitude and aggregate the grape variety
+    # group the df by region_1,latitude and logitude and aggregate the grape variety
     cluster_df = df.groupby(["region_1","latitude","longitude"]).agg({"variety":pd.Series.nunique}).reset_index()
 
-# create json dictionary from the cluster_df dataframe to render the clusters map
+    # create json dictionary from the cluster_df dataframe to render the clusters map
     json_data =[]
     for index,row in cluster_df.iterrows():
    
@@ -94,14 +80,6 @@ def cluster():
         json_data.append(location)
 
     return jsonify(json_data)
-
-@app.route("/index.html")
-def home():
-    return render_template('index.html')
-
-@app.route("/bar.html")
-def bar():
-    return render_template('bar.html')
 
 # Routes for charts
 @app.route('/states')
@@ -131,12 +109,6 @@ def stateData(state):
     }]
     return jsonify(data)
 
-@app.route("/data.html")
-def data():
-    """Return the data for the table"""
-    return render_template('data.html')
-
-
 @app.route("/tabledata")
 def tabledata():
     # Query for the number of wine reviews by state
@@ -154,19 +126,18 @@ def tabledata():
 
 
 if __name__ == "__main__":
-    # dbfile = os.path.join('./raw_data/wine_reviews.sqlite')
-    # engine = create_engine(f"sqlite:///{dbfile}")
-    # # reflect an existing database into a new model
-    # Base = automap_base()
-    # # reflect the tables
-    # Base.prepare(engine, reflect=True)
-    # # Save references to each table
-    # wine_reviews = Base.classes.reviews 
-    # # Create our session (link) from Python to the Database
-    # session = Session(engine)
+    dbfile = os.path.join('db/wine_reviews.sqlite')
+    engine = create_engine(f"sqlite:///{dbfile}")
+    # reflect an existing database into a new model
+    Base = automap_base()
+    # reflect the tables
+    Base.prepare(engine, reflect=True)
+    # Save references to each table
+    wine_reviews = Base.classes.reviews 
+    # Create our session (link) from Python to the Database
+    session = Session(engine)
     app.run(debug=True)
     
-
 
 
 
